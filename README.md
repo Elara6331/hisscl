@@ -27,7 +27,7 @@ with open('test.hcl', 'r') as fl:
     cfg = hisscl.load(fl, name=fl.name)
 ```
 
-Each `load*` function has an optional `vars: dict[str, Any]` parameter, whose elements are used as variables in your config file. For example, if you have `x = y + 1`, `y` must be defined in `globals`.
+Each `load*` function has an optional `vars: dict[str, Any]` parameter, whose elements are used as variables in your config file. For example, if you have `x = y + 1`, `y` must be defined in `vars`.
 
 For more advanced use-cases, `lexer`, `parser`, `ast`, and `interp` submodules are provided.
 
