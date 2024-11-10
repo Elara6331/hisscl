@@ -11,7 +11,7 @@
     
 [project]
     name = "hisscl"
-    description = "Python HCL parser"
+    description = "A Python HCL parser"
     dynamic = ["version"]
     authors = [{ name = "Elara6331", email = "elara@elara.ws" }]
     readme = "README.md"
@@ -30,3 +30,4 @@
 
 [project.urls]
     Repository = "https://gitea.elara.ws/Elara6331/hisscl"
+    GitHub = "https://github.com/Elara6331/hisscl"
