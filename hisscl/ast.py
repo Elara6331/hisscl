@@ -30,13 +30,21 @@ class String:
     pos: Position
     value: str
     
+Literal = Integer | Float | Bool | String
+    
 @dataclasses.dataclass
 class VariableRef:
     pos: Position
     name: str
     
-Literal = Integer | Float | Bool | String | VariableRef
+@dataclasses.dataclass
+class FunctionCall:
+    pos: Position
+    name: str
+    args: list['Value']
 
+Ref = VariableRef | FunctionCall
+    
 @dataclasses.dataclass
 class Tuple:
     pos: Position
@@ -67,8 +75,13 @@ class UnaryExpression:
     op: Operator
     value: 'Value'
     
-Expression = BinaryExpression | UnaryExpression
-Value = Literal | Collection | Expression
+@dataclasses.dataclass
+class Expansion:
+    pos: Position
+    value: 'Value'
+    
+Expression = BinaryExpression | UnaryExpression | Expansion
+Value = Literal | Collection | Expression | Ref
 
 @dataclasses.dataclass
 class Assignment:

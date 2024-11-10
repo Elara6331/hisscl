@@ -38,6 +38,8 @@ class Interp:
             if val.name not in self.vars:
                 raise KeyError(f'{val.pos}: no such variable: {repr(val.name)}')
             return self.vars[val.name]
+        elif isinstance(val, ast.FunctionCall):
+            return self._exec_func_call(val)
         elif isinstance(val, ast.Literal):
             return val.value
         elif isinstance(val, ast.Tuple):
@@ -48,6 +50,8 @@ class Interp:
             return self._eval_binary_expr(val)
         elif isinstance(val, ast.UnaryExpression):
             return self._eval_unary_expr(val)
+        elif isinstance(val, ast.Expansion):
+            raise ValueError(f'{val.pos}: cannot use expansion operator outside of a function call')
     
     def _is_numerical(self, val: typing.Any) -> bool:
         return isinstance(val, float | int) and type(val) is not bool
@@ -55,6 +59,22 @@ class Interp:
     def _is_comparable(self, val: typing.Any) -> bool:
         return self._is_numerical(val) or isinstance(val, str)
     
+    def _exec_func_call(self, call: ast.FunctionCall) -> typing.Any:
+        if call.name not in self.vars:
+            raise KeyError(f'{call.pos}: no such function: {repr(call.name)}')
+        elif not callable(self.vars[call.name]):
+            raise ValueError(f'{call.pos}: cannot call non-callable object')
+        args = []
+        for arg in call.args:
+            if isinstance(arg, ast.Expansion):
+                val = self._convert_value(arg.value)
+                if not isinstance(val, typing.Iterable):
+                    raise ValueError(f"{arg.pos}: cannot perform expansion on non-iterable value ({type(val).__name__})")
+                args.extend(val)
+            else:
+                args.append(self._convert_value(arg))
+        return self.vars[call.name](*args)
+        
     def _eval_unary_expr(self, expr: ast.UnaryExpression) -> float | int | bool:
         val = self._convert_value(expr.value)
         match expr.op.value:

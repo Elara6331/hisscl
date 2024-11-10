@@ -48,6 +48,5 @@ Currently, this parser supports all HCL features except:
 
 - [For Expressions](https://github.com/hashicorp/hcl/blob/main/hclsyntax/spec.md#for-expressions)
 - [Templates](https://github.com/hashicorp/hcl/blob/main/hclsyntax/spec.md#templates)
-- [Function Calls](https://github.com/hashicorp/hcl/blob/main/hclsyntax/spec.md#functions-and-function-calls)
 
 Support for these features is planned.

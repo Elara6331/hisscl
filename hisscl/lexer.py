@@ -24,6 +24,7 @@ class Token(enum.Enum):
     COMMA = 11
     COLON = 12
     OPERATOR = 13
+    ELLIPSIS = 14
 
 class ExpectedError(Exception):
     def __init__(self, pos: ast.Position, expected: str, got: str):
@@ -42,6 +43,8 @@ class Lexer:
         self.pos.name = name
 
     def _peek(self, n: int) -> str:
+        if self.unread != '':
+            return self.unread
         pos = self.stream.tell()
         text = self.stream.read(n)
         self.stream.seek(pos)
@@ -226,6 +229,12 @@ class Lexer:
                 # Ignore comments and return next token
                 self._scan_comment(char)
                 return self.scan()
+            case '.':
+                if (next := self._read()) != '.':
+                    raise ExpectedError(self.pos, '.', next)
+                if (next := self._read()) != '.':
+                    raise ExpectedError(self.pos, '.', next)
+                return Token.ELLIPSIS, self.pos, "..."
             case '':
                 return Token.EOF, self.pos, char
 

@@ -76,6 +76,35 @@ class Parser:
                 self._unscan(tok, pos, lit)
             
         return ast.Object(start_pos, items)
+        
+    def _parse_func_call(self) -> ast.FunctionCall:
+        id_tok, id_pos, id_lit = self._scan()
+        tok, pos, lit = self._scan()
+        if tok != lexer.Token.PAREN or lit != '(':
+            raise ExpectedError(pos, 'opening parentheses', lit)
+        
+        tok, pos, lit = self._scan()
+        if tok == lexer.Token.PAREN and lit == ')':
+            return ast.FunctionCall(pos=id_pos, name=id_lit, args=[])
+        self._unscan(tok, pos, lit)
+        
+        args: list[ast.Value] = []
+        while True:
+            args.append(self._parse_expr())
+            tok, pos, lit = self._scan()
+            if tok == lexer.Token.PAREN and lit == ')':
+                break
+            elif tok == lexer.Token.COMMA:
+                continue
+            elif tok == lexer.Token.ELLIPSIS:
+                args[-1] = ast.Expansion(pos=args[-1].pos, value=args[-1])
+                tok, pos, lit = self._scan()
+                if tok != lexer.Token.PAREN or lit != ')':
+                    raise ExpectedError(pos, 'closing parentheses', lit)
+                break
+            else:
+                raise ExpectedError(pos, 'comma or closing parentheses', lit)
+        return ast.FunctionCall(pos=id_pos, name=id_lit, args=args)
     
     def _parse_value(self) -> ast.Value:
         tok, pos, lit = self._scan()
@@ -89,6 +118,9 @@ class Parser:
             case lexer.Token.STRING:
                 return ast.String(pos=pos, value=pyast.literal_eval(lit))
             case lexer.Token.IDENT:
+                if self.lexer._peek(1) == '(':
+                    self._unscan(tok, pos, lit)
+                    return self._parse_func_call()
                 return ast.VariableRef(pos=pos, name=lit)
             case lexer.Token.HEREDOC:
                 return ast.String(pos=pos, value=lit)
