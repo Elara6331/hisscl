@@ -175,7 +175,6 @@ class Lexer:
 
             return Token.HEREDOC, pos, out.getvalue()
             
-    # TODO: scan multi-char operators like ==
     def _scan_operator(self, char) -> tuple[Token, ast.Position, str]:
         pos = dataclasses.replace(self.pos)
         with io.StringIO() as out:
@@ -183,10 +182,9 @@ class Lexer:
                 out.write(char)
                 char = self._read()
             self._unread(char)
-            val = out.getvalue()
             return Token.OPERATOR, pos, out.getvalue()
 
-    def scan(self) -> tuple[Token, ast.Position, str]:
+    def scan(self) -> tuple[Token, ast.Position, str]:        
         char = self._read()
         while is_whitespace(char):
             char = self._read()
@@ -208,7 +206,7 @@ class Lexer:
                 # If the next character is not another less than symbol,
                 # this is probably a less than operator.
                 if self._peek(1) != '<':
-                    return Token.OPERATOR, self.pos, char
+                    return self._scan_operator(char)
                 return self._scan_heredoc(char)
             case '/':
                     next = self._peek(1)
@@ -224,7 +222,7 @@ class Lexer:
                         # If the next character is not another slash
                         # or an asterisk, this is probably a division
                         # operator.
-                        return Token.OPERATOR, self.pos, char
+                        return self._scan_operator(char)
             case '#':
                 # Ignore comments and return next token
                 self._scan_comment(char)
