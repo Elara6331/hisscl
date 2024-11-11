@@ -80,7 +80,13 @@ class Expansion:
     pos: Position
     value: 'Value'
     
-Expression = BinaryExpression | UnaryExpression | Expansion
+@dataclasses.dataclass
+class Index:
+    pos: Position
+    value: 'Value'
+    index: 'Value'
+    
+Expression = BinaryExpression | UnaryExpression | Expansion | Index
 Value = Literal | Collection | Expression | Ref
 
 @dataclasses.dataclass

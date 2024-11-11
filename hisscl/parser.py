@@ -29,10 +29,21 @@ class Parser:
     
     def _unscan(self, tok: lexer.Token, pos: ast.Position, lit: str):
         self._prev = tok, pos, lit
-        
+    
+    def _parse_index(self, val: ast.Value) -> ast.Index:
+        index = ast.Index(pos=val.pos, value=val, index=self._parse_expr())
+        tok, pos, lit = self._scan()
+        if tok != lexer.Token.SQUARE or lit != ']':
+            raise ExpectedError(pos, 'closing square bracket', lit)
+        return index
+      
     def _parse_expr(self) -> ast.Value:
         left = self._parse_value()
         tok, pos, lit = self._scan()
+        while tok == lexer.Token.SQUARE and lit == '[':
+            left = self._parse_index(left)
+            # Scan the next token for the next if statement
+            tok, pos, lit = self._scan()
         if tok != lexer.Token.OPERATOR:
             self._unscan(tok, pos, lit)
             return left
