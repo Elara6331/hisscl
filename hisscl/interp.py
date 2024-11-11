@@ -15,10 +15,9 @@ class Block(dict):
         self.labels = labels
         super().__init__()
 
-class Interp:
-    vars: dict[str, typing.Any] = {}
-    
+class Interp:    
     def __init__(self, stream: typing.TextIO, name: str):
+        self.vars: dict[str, typing.Any] = {}
         self.parser = parser.Parser(stream, name)
         
     def __setitem__(self, key, val):

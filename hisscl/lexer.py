@@ -34,11 +34,10 @@ class ExpectedError(Exception):
         self.expected = expected
 
 class Lexer:
-    pos = ast.Position()
-    prev_pos = ast.Position()
-    unread = ''
-
     def __init__(self, stream: typing.TextIO, name: str):
+        self.pos = pos = ast.Position()
+        self.prev_pos = ast.Position()
+        self.unread = ''
         self.stream = stream
         self.pos.name = name
 

@@ -15,10 +15,9 @@ class ExpectedError(Exception):
         self.expected = expected
 
 class Parser:
-    _prev: tuple[lexer.Token, ast.Position, str] | None = None
-    
     def __init__(self, stream: TextIO, name: str):
         self.lexer = lexer.Lexer(stream, name)
+        self._prev: tuple[lexer.Token, ast.Position, str] | None = None
         
     def _scan(self) -> tuple[lexer.Token, ast.Position, str]:
         if self._prev is not None:
