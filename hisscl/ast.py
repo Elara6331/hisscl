@@ -40,7 +40,7 @@ class VariableRef:
 @dataclasses.dataclass
 class FunctionCall:
     pos: Position
-    name: str
+    value: 'Value'
     args: list['Value']
 
 Ref = VariableRef | FunctionCall

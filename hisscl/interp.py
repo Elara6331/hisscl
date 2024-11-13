@@ -80,20 +80,19 @@ class Interp:
         return self._is_numerical(val) or isinstance(val, str)
     
     def _exec_func_call(self, call: ast.FunctionCall) -> typing.Any:
-        if call.name not in self.vars:
-            raise KeyError(f'{call.pos}: no such function: {repr(call.name)}')
-        elif not callable(self.vars[call.name]):
+        val = self._convert_value(call.value)
+        if not callable(val):
             raise ValueError(f'{call.pos}: cannot call non-callable object')
         args = []
         for arg in call.args:
             if isinstance(arg, ast.Expansion):
-                val = self._convert_value(arg.value)
-                if not isinstance(val, typing.Iterable):
-                    raise ValueError(f"{arg.pos}: cannot perform expansion on non-iterable value ({type(val).__name__})")
-                args.extend(val)
+                arg_val = self._convert_value(arg.value)
+                if not isinstance(arg_val, typing.Iterable):
+                    raise ValueError(f"{arg.pos}: cannot perform expansion on non-iterable value ({type(arg_val).__name__})")
+                args.extend(arg_val)
             else:
                 args.append(self._convert_value(arg))
-        return self.vars[call.name](*args)
+        return val(*args)
         
     def _eval_unary_expr(self, expr: ast.UnaryExpression) -> float | int | bool:
         val = self._convert_value(expr.value)

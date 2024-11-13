@@ -180,8 +180,11 @@ class TestExpressions(unittest.TestCase):
     def test_expansion(self):
         val = parser.Parser(io.StringIO('x(y...)'), 'TestExpressions.test_expansion')._parse_expr()
         self.assertEqual(val, ast.FunctionCall(
-            pos = ast.Position(name='TestExpressions.test_expansion', line=1, col=1),
-            name = 'x',
+            pos = ast.Position(name='TestExpressions.test_expansion', line=1, col=2),
+            value = ast.VariableRef(
+                pos = ast.Position(name='TestExpressions.test_expansion', line=1, col=1),
+                name = 'x',
+            ),
             args = [
                 ast.Expansion(
                     pos = ast.Position(name='TestExpressions.test_expansion', line=1, col=3),

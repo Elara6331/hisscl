@@ -41,6 +41,9 @@ class Lexer:
         self.unread = ''
         self.stream = stream
         self.pos.name = name
+        
+    def _pos(self) -> ast.Position:
+        return dataclasses.replace(self.pos)
 
     def _peek(self, n: int) -> str:
         if self.unread != '':
@@ -191,15 +194,15 @@ class Lexer:
 
         match char:
             case '{' | '}':
-                return Token.CURLY, self.pos, char
+                return Token.CURLY, self._pos(), char
             case '[' | ']':
-                return Token.SQUARE, self.pos,  char
+                return Token.SQUARE, self._pos(),  char
             case '(' | ')':
-                return Token.PAREN, self.pos, char
+                return Token.PAREN, self._pos(), char
             case ',':
-                return Token.COMMA, self.pos, char
+                return Token.COMMA, self._pos(), char
             case ':':
-                return Token.COLON, self.pos, char
+                return Token.COLON, self._pos(), char
             case '"':
                     return self._scan_str()
             case '<':
@@ -230,12 +233,12 @@ class Lexer:
             case '.':
                 if (next := self._read()) != '.':
                     self._unread(next)
-                    return Token.DOT, self.pos, next
+                    return Token.DOT, self._pos(), next
                 elif (next := self._read()) != '.':
                     raise ExpectedError(self.pos, '.', next)
-                return Token.ELLIPSIS, self.pos, "..."
+                return Token.ELLIPSIS, self._pos(), "..."
             case '':
-                return Token.EOF, self.pos, char
+                return Token.EOF, self._pos(), char
 
         if is_numeric(char):
             return self._scan_number(char)
@@ -244,7 +247,7 @@ class Lexer:
         elif is_operator(char):
             return self._scan_operator(char)
 
-        return Token.ILLEGAL, self.pos, char
+        return Token.ILLEGAL, self._pos(), char
 
 def is_whitespace(char: str) -> bool:
     return char in (' ', '\t', '\r', '\n')

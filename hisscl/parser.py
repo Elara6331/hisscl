@@ -98,15 +98,14 @@ class Parser:
             
         return ast.Object(start_pos, items)
         
-    def _parse_func_call(self) -> ast.FunctionCall:
-        id_tok, id_pos, id_lit = self._scan()
-        tok, pos, lit = self._scan()
-        if tok != lexer.Token.PAREN or lit != '(':
-            raise ExpectedError(pos, 'opening parentheses', lit)
-        
-        tok, pos, lit = self._scan()
+    def _parse_func_call(self, val: ast.Value, start_pos: ast.Position) -> ast.FunctionCall:        
+        tok, pos, lit = self._scan()        
         if tok == lexer.Token.PAREN and lit == ')':
-            return ast.FunctionCall(pos=id_pos, name=id_lit, args=[])
+            out = ast.FunctionCall(pos=start_pos, value=val, args=[])
+            while self.lexer._peek(1) == '(':
+                _, start_pos, _ = self._scan()
+                out = self._parse_func_call(out, start_pos)
+            return out
         self._unscan(tok, pos, lit)
         
         args: list[ast.Value] = []
@@ -125,7 +124,12 @@ class Parser:
                 break
             else:
                 raise ExpectedError(pos, 'comma or closing parentheses', lit)
-        return ast.FunctionCall(pos=id_pos, name=id_lit, args=args)
+        
+        out = ast.FunctionCall(pos=start_pos, value=val, args=args)
+        while self.lexer._peek(1) == '(':
+            _, start_pos, _ = self._scan()
+            out = self._parse_func_call(out, start_pos)
+        return out
     
     def _parse_value(self) -> ast.Value:
         out = None
@@ -140,11 +144,7 @@ class Parser:
             case lexer.Token.STRING:
                 out = ast.String(pos=pos, value=pyast.literal_eval(lit))
             case lexer.Token.IDENT:
-                if self.lexer._peek(1) == '(':
-                    self._unscan(tok, pos, lit)
-                    out = self._parse_func_call()
-                else:
-                    out = ast.VariableRef(pos=pos, name=lit)
+                out = ast.VariableRef(pos=pos, name=lit)
             case lexer.Token.HEREDOC:
                 out = ast.String(pos=pos, value=lit)
             case lexer.Token.OPERATOR:
@@ -171,6 +171,8 @@ class Parser:
         tok, pos, lit = self._scan()
         if tok == lexer.Token.SQUARE and lit == '[':
             out = self._parse_index(out, pos)
+        elif tok == lexer.Token.PAREN and lit == '(':
+            out = self._parse_func_call(out, pos)
         elif tok == lexer.Token.DOT:
             out = self._parse_getattr(out, pos)
         else:
