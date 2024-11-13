@@ -104,11 +104,16 @@ class TestRefs(unittest.TestCase):
         self.assertEqual(cfg['x'], 456)
         
     def test_index(self):
-        i = interp.Interp(io.StringIO("x = y[1]"), "TestRefs.test_index")
+        i = interp.Interp(io.StringIO('x = y[1]'), "TestRefs.test_index")
         i['y'] = [123, 456, 789]
         cfg = i.run()
         self.assertIn('x', cfg)
         self.assertEqual(cfg['x'], 456)
+        
+    def test_multi_index(self):
+        cfg = interp.Interp(io.StringIO('x = ["123", "456", "789"][1][2]'), "TestRefs.test_multi_index").run()
+        self.assertIn('x', cfg)
+        self.assertEqual(cfg['x'], '6')
 
     def test_func(self):
         def y(a, b):

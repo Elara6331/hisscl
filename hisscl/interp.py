@@ -35,7 +35,7 @@ class Interp:
     def _eval_index(self, index: ast.Index) -> typing.Any:
         val = self._convert_value(index.value)
         if not hasattr(val, '__getitem__'):
-            raise ValueError(f'{index.value.pos}: value is not indexable ({type(val).__getitem__})')
+            raise ValueError(f'{index.value.pos}: value is not indexable ({type(val).__name__})')
         index_val = self._convert_value(index.index)
         if type(index_val) is int and hasattr(val, '__len__') and index_val >= len(val):
             raise IndexError(f'{index.index.pos}: index out of range ({index_val} with length {len(val)})')

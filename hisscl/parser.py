@@ -34,15 +34,14 @@ class Parser:
         tok, pos, lit = self._scan()
         if tok != lexer.Token.SQUARE or lit != ']':
             raise ExpectedError(pos, 'closing square bracket', lit)
+        while self.lexer._peek(1) == '[':
+            self._scan()
+            index = self._parse_index(index)
         return index
       
     def _parse_expr(self) -> ast.Value:
         left = self._parse_value()
         tok, pos, lit = self._scan()
-        while tok == lexer.Token.SQUARE and lit == '[':
-            left = self._parse_index(left)
-            # Scan the next token for the next if statement
-            tok, pos, lit = self._scan()
         if tok != lexer.Token.OPERATOR:
             self._unscan(tok, pos, lit)
             return left
@@ -117,33 +116,35 @@ class Parser:
         return ast.FunctionCall(pos=id_pos, name=id_lit, args=args)
     
     def _parse_value(self) -> ast.Value:
+        out = None
         tok, pos, lit = self._scan()
         match tok:
             case lexer.Token.INTEGER:
-                return ast.Integer(pos=pos, value=int(lit))
+                out = ast.Integer(pos=pos, value=int(lit))
             case lexer.Token.FLOAT:
-                return ast.Float(pos=pos, value=float(lit))
+                out = ast.Float(pos=pos, value=float(lit))
             case lexer.Token.BOOL:
-                return ast.Bool(pos=pos, value=(lit == 'true'))
+                out = ast.Bool(pos=pos, value=(lit == 'true'))
             case lexer.Token.STRING:
-                return ast.String(pos=pos, value=pyast.literal_eval(lit))
+                out = ast.String(pos=pos, value=pyast.literal_eval(lit))
             case lexer.Token.IDENT:
                 if self.lexer._peek(1) == '(':
                     self._unscan(tok, pos, lit)
-                    return self._parse_func_call()
-                return ast.VariableRef(pos=pos, name=lit)
+                    out = self._parse_func_call()
+                else:
+                    out = ast.VariableRef(pos=pos, name=lit)
             case lexer.Token.HEREDOC:
-                return ast.String(pos=pos, value=lit)
+                out = ast.String(pos=pos, value=lit)
             case lexer.Token.OPERATOR:
-                return ast.UnaryExpression(pos=pos, op=ast.Operator(pos=pos, value=lit), value=self._parse_value())
+                out = ast.UnaryExpression(pos=pos, op=ast.Operator(pos=pos, value=lit), value=self._parse_value())
             case lexer.Token.SQUARE:
                 if lit != '[':
                     raise ExpectedError(pos, repr('['), lit)
-                return self._parse_tuple(pos)
+                out = self._parse_tuple(pos)
             case lexer.Token.CURLY:
                 if lit != '{':
                     raise ExpectedError(pos, repr('{'), lit)
-                return self._parse_object(pos)
+                out = self._parse_object(pos)
             case lexer.Token.PAREN:
                 if lit != '(':
                     raise ExpectedError(pos, repr('('), lit)
@@ -151,9 +152,15 @@ class Parser:
                 tok, pos, lit = self._scan()
                 if tok != lexer.Token.PAREN or lit != ')':
                     raise ExpectedError(pos, repr(')'), lit)
-                return expr
-            
-        raise ExpectedError(pos, 'value', lit)
+                out = expr
+            case _:
+                raise ExpectedError(pos, 'value', lit)
+        
+        if self.lexer._peek(1) == '[':
+            self._scan()
+            out = self._parse_index(out)
+        
+        return out
         
     def parse(self, until: tuple[lexer.Token, str] = (lexer.Token.EOF, '')) -> ast.AST:
         tree = []
