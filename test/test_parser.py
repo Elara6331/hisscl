@@ -205,6 +205,29 @@ class TestExpressions(unittest.TestCase):
             pos = ast.Position(name='TestExpressions.test_index', line=1, col=3),
             value = 0,
         ))
+        
+    def test_index_legacy(self):
+        val = parser.Parser(io.StringIO('x.0'), 'TestExpressions.test_index_legacy')._parse_expr()
+        self.assertIsInstance(val, ast.Index)
+        assert type(val) is ast.Index
+        self.assertEqual(val.value, ast.VariableRef(
+            pos = ast.Position(name='TestExpressions.test_index_legacy', line=1, col=1),
+            name = 'x',
+        ))
+        self.assertEqual(val.index, ast.Integer(
+            pos = ast.Position(name='TestExpressions.test_index_legacy', line=1, col=3),
+            value = 0,
+        ))
+        
+    def test_getattr(self):
+        val = parser.Parser(io.StringIO('x.y'), 'TestExpressions.test_getattr')._parse_expr()
+        self.assertIsInstance(val, ast.GetAttr)
+        assert type(val) is ast.GetAttr
+        self.assertEqual(val.value, ast.VariableRef(
+            pos = ast.Position(name='TestExpressions.test_getattr', line=1, col=1),
+            name = 'x',
+        ))
+        self.assertEqual(val.attr, 'y')
     
     def test_unary(self):
         val = parser.Parser(io.StringIO('!true'), 'TestExpressions.test_unary')._parse_value()

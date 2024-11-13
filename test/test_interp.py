@@ -114,6 +114,22 @@ class TestRefs(unittest.TestCase):
         cfg = interp.Interp(io.StringIO('x = ["123", "456", "789"][1][2]'), "TestRefs.test_multi_index").run()
         self.assertIn('x', cfg)
         self.assertEqual(cfg['x'], '6')
+        
+    def test_index_legacy(self):
+        i = interp.Interp(io.StringIO('x = y.1'), "TestRefs.test_index_legacy")
+        i['y'] = [123, 456, 789]
+        cfg = i.run()
+        self.assertIn('x', cfg)
+        self.assertEqual(cfg['x'], 456)
+        
+    def test_getattr(self):
+        class Y:
+            z = 123
+        i = interp.Interp(io.StringIO('x = Y.z'), "TestRefs.test_getattr")
+        i['Y'] = Y()
+        cfg = i.run()
+        self.assertIn('x', cfg)
+        self.assertEqual(cfg['x'], 123)
 
     def test_func(self):
         def y(a, b):

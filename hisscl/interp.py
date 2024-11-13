@@ -65,6 +65,11 @@ class Interp:
             return self._eval_unary_expr(val)
         elif isinstance(val, ast.Index):
             return self._eval_index(val)
+        elif isinstance(val, ast.GetAttr):
+            obj = self._convert_value(val.value)
+            if not hasattr(obj, val.attr):
+                raise AttributeError(f'{val.pos}: no such attribute {repr(val.attr)} in object of type {type(obj).__name__}')
+            return getattr(obj, val.attr)
         elif isinstance(val, ast.Expansion):
             raise ValueError(f'{val.pos}: cannot use expansion operator outside of a function call')
     

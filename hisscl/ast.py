@@ -86,7 +86,13 @@ class Index:
     value: 'Value'
     index: 'Value'
     
-Expression = BinaryExpression | UnaryExpression | Expansion | Index
+@dataclasses.dataclass
+class GetAttr:
+    pos: Position
+    value: 'Value'
+    attr: str
+    
+Expression = BinaryExpression | UnaryExpression | Expansion | Index | GetAttr
 Value = Literal | Collection | Expression | Ref
 
 @dataclasses.dataclass

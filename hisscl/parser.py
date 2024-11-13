@@ -29,15 +29,27 @@ class Parser:
     def _unscan(self, tok: lexer.Token, pos: ast.Position, lit: str):
         self._prev = tok, pos, lit
     
-    def _parse_index(self, val: ast.Value) -> ast.Index:
-        index = ast.Index(pos=val.pos, value=val, index=self._parse_expr())
-        tok, pos, lit = self._scan()
+    def _parse_index(self, val: ast.Value, start_pos: ast.Position) -> ast.Index:
+        index = ast.Index(pos=start_pos, value=val, index=self._parse_expr())
+        tok, start_pos, lit = self._scan()
         if tok != lexer.Token.SQUARE or lit != ']':
-            raise ExpectedError(pos, 'closing square bracket', lit)
+            raise ExpectedError(start_pos, 'closing square bracket', lit)
         while self.lexer._peek(1) == '[':
-            self._scan()
-            index = self._parse_index(index)
+            _, start_pos, _ = self._scan()
+            index = self._parse_index(index, start_pos)
         return index
+        
+    def _parse_getattr(self, val: ast.Value, start_pos: ast.Position) -> ast.Index | ast.GetAttr:
+        tok, pos, lit = self._scan()
+        if tok == lexer.Token.INTEGER:
+            return ast.Index(pos=start_pos, value=val, index=ast.Integer(pos=pos, value=int(lit)))
+        elif tok == lexer.Token.IDENT:
+            return ast.GetAttr(pos=start_pos, value=val, attr=lit)
+        else:
+            raise ExpectedError(pos, 'integer or identifier', lit)
+        while self.lexer._peek(1) == '.':
+            _, start_pos, _ = self._scan()
+            index = self._parse_getattr(index, start_pos)
       
     def _parse_expr(self) -> ast.Value:
         left = self._parse_value()
@@ -156,9 +168,13 @@ class Parser:
             case _:
                 raise ExpectedError(pos, 'value', lit)
         
-        if self.lexer._peek(1) == '[':
-            self._scan()
-            out = self._parse_index(out)
+        tok, pos, lit = self._scan()
+        if tok == lexer.Token.SQUARE and lit == '[':
+            out = self._parse_index(out, pos)
+        elif tok == lexer.Token.DOT:
+            out = self._parse_getattr(out, pos)
+        else:
+            self._unscan(tok, pos, lit)
         
         return out
         

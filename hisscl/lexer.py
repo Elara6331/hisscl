@@ -25,6 +25,7 @@ class Token(enum.Enum):
     COLON = 12
     OPERATOR = 13
     ELLIPSIS = 14
+    DOT = 15
 
 class ExpectedError(Exception):
     def __init__(self, pos: ast.Position, expected: str, got: str):
@@ -228,8 +229,9 @@ class Lexer:
                 return self.scan()
             case '.':
                 if (next := self._read()) != '.':
-                    raise ExpectedError(self.pos, '.', next)
-                if (next := self._read()) != '.':
+                    self._unread(next)
+                    return Token.DOT, self.pos, next
+                elif (next := self._read()) != '.':
                     raise ExpectedError(self.pos, '.', next)
                 return Token.ELLIPSIS, self.pos, "..."
             case '':
