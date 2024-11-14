@@ -50,5 +50,6 @@ Currently, this parser supports all HCL features except:
 
 - [For Expressions](https://github.com/hashicorp/hcl/blob/main/hclsyntax/spec.md#for-expressions)
 - [Templates](https://github.com/hashicorp/hcl/blob/main/hclsyntax/spec.md#templates)
+- [Splat Operators](https://github.com/hashicorp/hcl/blob/main/hclsyntax/spec.md#splat-operators)
 
 Support for these features is planned.
