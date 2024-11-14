@@ -8,10 +8,17 @@ clone:
       tags: true
 
 steps:
+  test:
+    image: python
+    commands:
+      - python -m unittest
+    when:
+      event: [tag, pull_request]
+
   build:
     image: python
     commands:
-      - python -m pip install hatchling hatch-vcs build
+      - python -m pip install build
       - python -m build
     when:
       event: tag
