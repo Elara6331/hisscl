@@ -2,6 +2,8 @@
 
 A [HashiCorp Config Language](https://github.com/hashicorp/hcl) parser for Python
 
+[![status-badge](https://ci.elara.ws/api/badges/63/status.svg)](https://ci.elara.ws/repos/63)
+
 ## Usage
 
 For most simple use-cases, you can use the `load*` convenience functions:
